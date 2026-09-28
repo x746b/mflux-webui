@@ -962,7 +962,7 @@ dependencies = [
 
 [[package]]
 name = "mflux-webui"
-version = "0.1.0a1"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },

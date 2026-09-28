@@ -8,7 +8,7 @@ namespace = true
 
 [project]
 name = "mflux-webui"
-version = "0.1.0a1"
+version = "0.2.0"
 description = "A lightweight browser interface for mflux image generation with local and hosted prompt assistants."
 readme = "README.md"
 license = "MIT AND Apache-2.0"
@@ -35,7 +35,7 @@ Issues = "https://github.com/x746b/mflux-webui/issues"
 [project.scripts]
 mflux-webui = "mflux.web.x746b_ui.cli:main"
 
-# Preview development needs functionality not yet published in mflux 0.20.0.
+# Required upstream functionality is not yet published in mflux 0.20.0.
 [tool.uv.sources]
 mflux = { git = "https://github.com/mflux-community/mflux", rev = "0db686992d65cbd84bd925dfce23b77ad0bedf7d" }
 

@@ -2,7 +2,7 @@
 
 ## Tested baseline
 
-The alpha package is tested against upstream `mflux-community/mflux` commit
+mflux-webui 0.2.0 is tested against upstream `mflux-community/mflux` commit
 `0db686992d65cbd84bd925dfce23b77ad0bedf7d`. The source override and lockfile pin that
 revision for development. No code or dependency is taken from the `x746b/mflux` fork
 at installation time.

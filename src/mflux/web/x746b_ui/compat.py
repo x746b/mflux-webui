@@ -15,6 +15,6 @@ class CoreCompatibility:
         missing = [name for name in CoreCompatibility.REQUIRED_FILES if not root.joinpath(name).is_file()]
         if missing:
             raise RuntimeError(
-                "This preview requires newer upstream mflux features than the installed core provides. "
+                "This version of mflux-webui requires newer upstream mflux features than the installed core provides. "
                 "Install the upstream revision specified in the README; mflux 0.20.0 from PyPI is not sufficient."
             )

@@ -26,10 +26,10 @@ The optional prompt assistant helps develop ideas using local oMLX inference or 
 
 ### Install and run
 
-This is an alpha preview. The complete UI needs upstream functionality newer than the current `mflux 0.20.0` PyPI release. Development is pinned to an upstream commit; it does not depend on the `x746b/mflux` fork. Until a compatible core release is published, install the UI with the explicit upstream override:
+mflux-webui **0.2.0** uses upstream functionality newer than the current `mflux 0.20.0` PyPI release. It is tested against the upstream revision below and does not depend on the `x746b/mflux` fork. Install or update the UI with this explicit upstream dependency:
 
 ```bash
-uv tool install --python 3.14 \
+uv tool install --force --refresh --python 3.14 \
   --with "mflux @ git+https://github.com/mflux-community/mflux@0db686992d65cbd84bd925dfce23b77ad0bedf7d" \
   "mflux-webui @ git+https://github.com/x746b/mflux-webui@main"
 ```
@@ -163,7 +163,7 @@ The `mflux-webui` command is distinct from other packages' `mflux-web` commands.
 
 Qwen geometry and prompt caches are trimmed by the UI after generation; upstream model files are not patched. The adapters depend on mflux APIs that can change, so every core dependency update needs automated checks and real generation testing.
 
-The development override in `[tool.uv.sources]` is not included in wheel dependency metadata. For a wheel install, provide the same explicit upstream override shown above. Before publishing to PyPI, select and test a published mflux version containing the required features, update the dependency minimum, and remove the Git override. Do not publish this preview as a release that works with stock mflux 0.20.0.
+The development override in `[tool.uv.sources]` is not included in wheel dependency metadata. For a wheel install, provide the same explicit upstream override shown above. Before publishing to PyPI, select and test a published mflux version containing the required features, update the dependency minimum, and remove the Git override. The current package requires the documented upstream revision; stock mflux 0.20.0 does not provide the complete feature set.
 
 See [core compatibility and release checks](docs/compatibility.md) for the tested baseline, package boundaries, and validation details.
 
