@@ -6,6 +6,26 @@ I built the UI because I wanted to try new prompts without typing long commands 
 
 The optional prompt assistant helps develop ideas using local oMLX inference or the OpenAI API. A startup progress bar shows which command options or local files are being loaded, while the gallery keeps generated images and their settings easy to revisit.
 
+### How it works
+
+```mermaid
+flowchart LR
+    A["You choose a model<br/>and write a prompt"] --> B["Web UI<br/>Checks settings and queues the job"]
+    B --> C["Upstream mflux<br/>Generates the image on your Mac"]
+    C --> D["Image + saved settings<br/>View, download or reuse in the gallery"]
+    E["Optional prompt assistant<br/>Local oMLX or OpenAI"] -.->|Suggests prompt text| A
+```
+
+- **The browser is the control panel.** Pick models and LoRAs, edit prompts, and watch generation progress.
+- **mflux runs the image generation locally.** The UI validates settings using mflux's command parsers and calls its Python API in a background worker.
+- **Your images stay in the output folder you choose.** The gallery reads them and their saved settings from disk.
+- **Chat is optional.** Choose local oMLX or the OpenAI API to help with prompt ideas. OpenAI chat sends submitted conversation text to OpenAI; image generation still runs locally.
+- **The CLI remains available.** Each job shows an equivalent command you can copy into a terminal.
+
+For the frontend, API, worker, and execution diagrams, see [Architecture](docs/architecture.md).
+
+### A look at the UI
+
 ![Generate page with the local oMLX prompt assistant](docs/Screenshot-1.png)
 
 *Generate with the local oMLX prompt assistant. Generation controls are on the left; the result and equivalent CLI command are on the right. Use **Copy CLI command** to take a run back to the terminal. The top bar shows worker status and memory use, with an **Unload** button when a cached model can be released.*
