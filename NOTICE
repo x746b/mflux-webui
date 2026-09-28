@@ -1,0 +1,9 @@
+mflux-webui
+
+The Web UI was extracted from x746b/mflux. Portions derive from mflux,
+Copyright (c) 2026 Filip Strand and mflux contributors, under the MIT License.
+See licenses/mflux-MIT.txt.
+
+src/mflux/web/x746b_ui/auth.py includes software adapted from oMLX
+(https://github.com/jundot/omlx), Copyright oMLX contributors, licensed under
+the Apache License, Version 2.0. See licenses/Apache-2.0.txt.

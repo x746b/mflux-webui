@@ -1,0 +1,56 @@
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "mflux.web.x746b_ui"
+namespace = true
+
+[project]
+name = "mflux-webui"
+version = "0.1.0a1"
+description = "A lightweight browser interface for mflux image generation with local and hosted prompt assistants."
+readme = "README.md"
+license = "MIT AND Apache-2.0"
+license-files = ["LICENSE", "NOTICE", "licenses/*.txt"]
+requires-python = ">=3.12"
+keywords = ["mflux", "mlx", "webui", "fastapi", "apple-silicon", "image-generation"]
+dependencies = [
+    "mflux>=0.20.0,<0.21.0",
+    "fastapi>=0.115,<1.0",
+    "httpx>=0.28,<1.0",
+    "itsdangerous>=2.2,<3.0",
+    "jinja2>=3.1,<4.0",
+    "python-multipart>=0.0.18",
+    "uvicorn>=0.30,<1.0",
+    "huggingface-hub>=1.1.6,<2.0",
+    "pillow>=12.3.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/x746b/mflux-webui"
+Repository = "https://github.com/x746b/mflux-webui"
+Issues = "https://github.com/x746b/mflux-webui/issues"
+
+[project.scripts]
+mflux-webui = "mflux.web.x746b_ui.cli:main"
+
+# Preview development needs functionality not yet published in mflux 0.20.0.
+[tool.uv.sources]
+mflux = { git = "https://github.com/mflux-community/mflux", rev = "0db686992d65cbd84bd925dfce23b77ad0bedf7d" }
+
+[dependency-groups]
+dev = ["pytest>=9.1,<10", "ruff==0.16.3"]
+browser = ["playwright>=1.55,<2"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = ["fast: tests without full model weight loading"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
