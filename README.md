@@ -18,6 +18,10 @@ The optional prompt assistant helps develop ideas using local oMLX inference or 
 
 *The gallery. Open an image to inspect its generation settings, download it, or use **Reuse settings** to restore its options and seed in the form.*
 
+![Image generated with the standalone UI and local prompt assistant](docs/Screenshot-samples-1.png)
+
+*A sample generated with the standalone package using Krea 2, a LoRA, and the local oMLX prompt assistant.*
+
 ---
 
 ### Install and run
