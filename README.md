@@ -61,6 +61,14 @@ This version is not yet published on PyPI. After publication, the equivalent PyP
 uv tool install --force --refresh --python 3.14 mflux-webui-uno
 ```
 
+Alternatively, after publication, install with `pipx`. This assumes Python 3.14 and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html) are already available:
+
+```bash
+pipx install --python python3.14 mflux-webui-uno
+```
+
+`pipx` creates an isolated environment and installs the required mflux core automatically. Run the same `mflux-webui` command shown below; update later with `pipx upgrade mflux-webui-uno`.
+
 If you previously installed the distribution named `mflux-webui` with `uv tool`, first run `uv tool uninstall mflux-webui`, then install `mflux-webui-uno` as above. The executable name, configuration, generated images, and model directories remain the same. Remove any old `--with "mflux @ git+..."` override from your installation command so the registry dependency can be resolved normally.
 
 #### Run
