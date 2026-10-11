@@ -15,8 +15,8 @@ weights. An incompatible or incomplete installation produces an error with
 registry installation instructions.
 
 The distribution name is `mflux-webui-uno`; the command remains `mflux-webui`.
-This version is not yet published on PyPI. See the README for tagged Git
-release installation and migration from the previous `mflux-webui` distribution.
+See the README for PyPI and tagged Git release installation, and migration from
+the previous `mflux-webui` distribution.
 
 ## Package boundaries
 

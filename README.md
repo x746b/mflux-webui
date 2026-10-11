@@ -55,13 +55,13 @@ uv tool install --force --refresh --python 3.14 \
   "mflux-webui-uno @ git+https://github.com/x746b/mflux-webui@v0.2.2"
 ```
 
-This version is not yet published on PyPI. After publication, the equivalent PyPI installation will be:
+To install from PyPI with `uv`:
 
 ```bash
 uv tool install --force --refresh --python 3.14 mflux-webui-uno
 ```
 
-Alternatively, after publication, install with `pipx`. This assumes Python 3.14 and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html) are already available:
+Alternatively, install from PyPI with `pipx`. This assumes Python 3.14 and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html) are already available:
 
 ```bash
 pipx install --python python3.14 mflux-webui-uno
