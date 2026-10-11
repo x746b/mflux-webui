@@ -63,6 +63,11 @@ class BrowserSmoke:
                     assert len(data["commands"]) == 10
                     assert all(item["available"] for item in data["commands"])
                     config = page.request.get(url + "/api/chat/config").json()
+                    assert config["default_model"] == "gpt-6-luna"
+                    assert config["models"] == [
+                        {"id": "gpt-6-luna", "name": "GPT-6 Luna"},
+                        {"id": "gpt-6.1-sol", "name": "GPT-6.1 Sol"},
+                    ]
                     for provider in config["providers"].values():
                         provider["configured"] = True
                     config["providers"]["omlx"].update(
@@ -95,7 +100,30 @@ class BrowserSmoke:
                     expect(page.locator("#chat-messages .chat-message")).to_have_count(2)
                     expect(page.locator("#chat-input")).to_have_value("")
                     page.locator("#chat-close").click()
+                    legacy_preferences = {
+                        "enabled": False,
+                        "provider": "omlx",
+                        "model": "gpt-6-sol",
+                        "instructions": "Keep my cinematic style",
+                    }
+                    page.evaluate(
+                        "value => localStorage.setItem('mflux-web:chat-preferences', JSON.stringify(value))",
+                        legacy_preferences,
+                    )
                     page.goto(url + "/settings")
+                    expect(page.locator("#assistant-model")).to_have_value("gpt-6.1-sol")
+                    expect(page.locator("#assistant-provider")).to_have_value("omlx")
+                    expect(page.locator("#assistant-enabled")).not_to_be_checked()
+                    expect(page.locator("#assistant-instructions")).to_have_value("Keep my cinematic style")
+                    assert page.evaluate("JSON.parse(localStorage.getItem('mflux-web:chat-preferences'))") == {
+                        **legacy_preferences,
+                        "model": "gpt-6.1-sol",
+                    }
+                    page.locator("#assistant-enabled").check()
+                    page.locator("#assistant-provider").select_option("openai")
+                    expect(page.locator("#assistant-model option")).to_have_text(["GPT-6 Luna", "GPT-6.1 Sol"])
+                    page.reload()
+                    expect(page.locator("#assistant-model")).to_have_value("gpt-6.1-sol")
                     page.locator("#appearance-theme").select_option("dark")
                     page.locator("#appearance-accent").select_option("teal")
                     expect(page.locator("html")).to_have_attribute("data-accent", "teal")

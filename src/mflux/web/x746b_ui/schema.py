@@ -19,18 +19,23 @@ class FormSchema:
             "--lora-scales",
             "--lora-style",
             "--image-path",
+            "--mask-image",
             "--image-strength",
             "--output",
             "--stepwise-image-output-dir",
             "--config-from-metadata",
+            "--config-from-conf",
+            "-C",
             "--prompt-file",
             "--metadata",
+            "--make-conf",
             "--no-metadata",
+            "--no-exif",
             "--auto-seeds",
             "--verbose",
         }
     )
-    TEXTAREA_FLAGS = ("--prompt", "--negative-prompt")
+    TEXTAREA_FLAGS = ("--prompt", "--negative-prompt", "--auto-mask")
     GROUPS = {
         "basic": ("--prompt", "--negative-prompt", "--width", "--height", "--steps", "--guidance"),
         "model": ("--base-model", "--quantize", "--bake-lora"),
@@ -113,7 +118,8 @@ class FormSchema:
     @staticmethod
     def _field(option: dict, adapter) -> dict | None:
         flag = option["flag"]
-        if flag in FormSchema.BLOCKED_FLAGS or option["status"] in ("ignored", "rejected"):
+        flags = {flag, *option.get("aliases", [])}
+        if flags & FormSchema.BLOCKED_FLAGS or option["status"] in ("ignored", "rejected"):
             return None
         field = {
             "flag": flag,
@@ -134,7 +140,8 @@ class FormSchema:
         if flag == "--base-model":
             return {**field, "widget": "select", "choices": list(adapter.builtin_models)}
         if flag == "--scheduler":
-            return {**field, "widget": "select", "choices": FormSchema._schedulers()}
+            choices = getattr(adapter, "scheduler_choices", None) or FormSchema._schedulers()
+            return {**field, "widget": "select", "choices": list(choices)}
         if option["type"] == "bool":
             negative = f"--no-{flag.removeprefix('--')}"
             if negative in option.get("aliases", []):

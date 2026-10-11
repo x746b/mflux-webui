@@ -1,9 +1,10 @@
 # Architecture
 
-`mflux-webui` runs one Python server process. The browser sends JSON requests to
+The `mflux-webui-uno` distribution supplies the `mflux-webui` command, which runs
+one Python server process. The browser sends JSON requests to
 FastAPI, and a dedicated worker thread calls upstream mflux to generate images.
 The UI package lives under `mflux.web.x746b_ui`; the inference implementation comes
-from the separately installed `mflux` dependency.
+from the separately installed PyPI `mflux 0.22.x` dependency.
 
 ## The short version
 
@@ -175,13 +176,23 @@ generates each seed, saves results, and handles cancellation at generation
 checkpoints. With `--cache-size 0`, the model is released after the job.
 
 [`adapters.py`](../src/mflux/web/x746b_ui/adapters.py) bridges each supported command
-to its upstream model class. Its `load()` and `generate()` methods mirror the
-relevant CLI orchestration and call the model's Python API directly. Generation
+to upstream Python APIs. Six commands use `SharedCommandAdapter`, delegating model
+loading and generation to upstream shared command specs: Qwen Image, Z-Image,
+Z-Image Turbo, Krea 2, ERNIE-Image, and ERNIE-Image Turbo. The four remaining
+commands—FLUX.1, FLUX.2, Qwen Image 2.1, and Qwen Image 2.1 editing—use explicit
+adapters around the relevant model APIs. This keeps the UI's cache and worker
+lifecycle while using shared upstream orchestration where available. Generation
 does not launch an `mflux-generate-*` shell process.
 
 The displayed shell command is produced separately by `Invocation.shell_command()`
 using `shlex.join()`. It represents the job's settings for copying into a terminal.
-`/api/validate` can return that command without starting generation.
+`/api/validate` can return that command without starting generation. The command
+uses upstream's `--make-conf` option for saved configuration. Metadata options are
+server-owned and cannot be overridden in a browser request.
+
+Qwen editing accepts uploaded reference images and text-based `--auto-mask`.
+Manual mask uploads are not implemented, so the UI blocks `--mask-image` rather
+than accepting arbitrary local filesystem paths.
 
 ## Results and prompt assistance
 

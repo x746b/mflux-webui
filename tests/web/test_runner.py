@@ -1,3 +1,4 @@
+import json
 import time
 from argparse import Namespace
 from pathlib import Path
@@ -148,6 +149,31 @@ def test_second_job_reuses_cached_model(runner, tmp_path):
     assert adapter.loads == 1
     assert "model_cached" in event_types(second)
     assert runner.status()["cached_models"][0]["model"] == "qwen-image-2.1"
+
+
+def test_verification_retry_records_actual_seed_but_keeps_requested_filename(runner, tmp_path):
+    class RetryAdapter(FakeAdapter):
+        def generate(self, model, args, seed, prompt):
+            image = super().generate(model, args, seed, prompt)
+            image.seed = seed + 1
+            return image
+
+    payload = {"seeds": [7]}
+    job = wait(runner.submit(FakeInvocation(RetryAdapter(), tmp_path, seeds=(7,)), payload))
+    assert job.status == "done", job.error
+    assert job.images == ["img_7.png"]
+    sidecar = json.loads((tmp_path / "img_7.web.json").read_text())
+    assert sidecar["seed"] == 8
+    assert sidecar["payload"] == payload
+    assert [event["seed"] for event in job.events if event["type"] == "image"] == [8]
+
+
+def test_images_without_seed_keep_requested_seed(runner, tmp_path):
+    job = wait(runner.submit(FakeInvocation(FakeAdapter(), tmp_path, seeds=(7,)), {}))
+    assert job.status == "done", job.error
+    sidecar = json.loads((tmp_path / "img_7.web.json").read_text())
+    assert sidecar["seed"] == 7
+    assert [event["seed"] for event in job.events if event["type"] == "image"] == [7]
 
 
 def test_different_model_evicts_with_cache_size_one(runner, tmp_path):

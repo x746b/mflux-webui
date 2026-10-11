@@ -40,6 +40,10 @@ class Invocation:
         "--vae-tile-size": (128, 8192),
         "--battery-percentage-stop-limit": (1, 99),
         "--pid-degrade-sigma": (0, 100),
+        "--strength": (0, 1),
+        "--step-cache-ratio": (0, 1),
+        "--step-cache-threshold": (0, 1e6),
+        "--verify-retries": (0, 3),
     }
     MAX_DIMENSION = 8192
     MAX_SCALE = 8.0
@@ -79,7 +83,7 @@ class Invocation:
         if prompt.strip() == "-":
             raise InvocationError("A prompt of '-' (read from stdin) is not supported in the web UI")
 
-        argv.extend(["--metadata", f"--output={output_stem}.png"])
+        argv.extend(["--make-conf", f"--output={output_stem}.png"])
         return Invocation(command, argv, output_stem, lora_argv, provided)
 
     @property
@@ -176,6 +180,10 @@ class Invocation:
             low, high = Invocation.NUMBER_BOUNDS.get(flag, (-1e6, 1e6))
             if not low <= number <= high:
                 raise InvocationError(f"{flag} must be between {low} and {high}")
+            if flag == "--strength" and number == 0:
+                raise InvocationError(f"{flag} must be greater than 0 and at most 1")
+            if flag == "--step-cache-ratio" and number in (0, 1):
+                raise InvocationError(f"{flag} must be greater than 0 and less than 1")
             return [f"{flag}={int(number) if spec['type'] == 'int' else number}"]
         if kind == "dimension":
             text = str(value).strip().lower()

@@ -31,12 +31,13 @@ def invocation(web, options=None, references=None, **extra):
     )
 
 
-def test_edit_schema_exposes_references_and_kv_cache_but_no_loras():
+def test_edit_schema_exposes_references_caches_loras_and_precision():
     schema = FormSchema()
     fields = schema.fields_by_flag(COMMAND)
     assert fields["--image-paths"]["widget"] == "special"
     assert fields["--use-kv-cache"]["default"] is True
-    assert not {"--lora", "--bake-lora", "--image", "--verbose"} & fields.keys()
+    assert {"--lora", "--bake-lora", "--compute-precision", "--use-step-cache"} <= fields.keys()
+    assert not {"--image", "--verbose", "--mask-image"} & fields.keys()
     assert schema.command(COMMAND)["dimension_step"] == 32
     assert schema.command(COMMAND)["max_references"] == 10
 
@@ -71,7 +72,11 @@ def test_reference_uploads_round_trip_in_order_and_survive_history_clear(web):
         ({"--output-resolution": 100000}, "between"),
         ({"--steps": 1}, "at least two steps"),
         ({"--guidance": 0.9}, "at least 1"),
-        ({"--scheduler": "flow_match_euler_discrete"}, "linear Euler"),
+        ({"--scheduler": "viggle_turbo"}, "requires --steps 6"),
+        ({"--use-step-cache": True, "--use-kv-cache": False}, "needs --use-kv-cache"),
+        ({"--enhance-prompt": True}, "need at least one"),
+        ({"--verify-retries": 1}, "needs --verify"),
+        ({"--strength": 0.5}, "need at least one"),
     ],
 )
 def test_edit_validation_runs_before_loading(web, options, message):
@@ -95,11 +100,6 @@ def test_text_generation_command_rejects_references(web):
         invocation(web, references=["ref.png"], command="mflux-generate-qwen-2.1")
 
 
-def test_edit_rejects_loras(web):
-    with pytest.raises(InvocationError, match="does not take LoRAs"):
-        invocation(web, loras=[{"path": "example"}])
-
-
 def test_edit_forwards_cli_parameters_and_bounds_prompt_cache(web):
     inv = invocation(web, {"--guidance": 2, "--use-kv-cache": False, "--output-resolution": 512})
     args = inv.parse()
@@ -121,6 +121,15 @@ def test_edit_forwards_cli_parameters_and_bounds_prompt_cache(web):
             "image_paths": [],
             "output_resolution": 512,
             "use_kv_cache": False,
+            "mask_image": None,
+            "auto_mask": None,
+            "strength": 1.0,
+            "use_step_cache": False,
+            "step_cache_threshold": 0.12,
+            "enhance_prompt": False,
+            "verify": False,
+            "verify_retries": 0,
+            "scheduler": "linear",
         }
     ]
     assert list(model.prompt_cache) == ["16", "17", "18", "19"]
@@ -143,7 +152,7 @@ def test_automatic_dimensions_cannot_bypass_web_limit(web):
 
 
 def test_edit_loader_matches_upstream_constructor(web, monkeypatch):
-    import mflux.models.qwen21.reference as reference
+    import mflux.models.qwen21.variants.edit.qwen_image_21_edit as reference
 
     seen = []
     monkeypatch.setattr(reference, "QwenImage21Edit", lambda **kwargs: seen.append(kwargs))
@@ -151,11 +160,19 @@ def test_edit_loader_matches_upstream_constructor(web, monkeypatch):
     Qwen21EditAdapter().load(args)
     assert seen[0]["quantize"] == 4
     assert seen[0]["model_path"] is None
-    assert set(seen[0]) == {"quantize", "model_path", "model_config"}
+    assert set(seen[0]) == {
+        "quantize",
+        "model_path",
+        "model_config",
+        "compute_precision",
+        "lora_paths",
+        "lora_scales",
+        "bake_lora",
+    }
 
 
 def test_edit_runner_uses_real_adapter_with_fake_weights(web, monkeypatch):
-    import mflux.models.qwen21.reference as reference
+    import mflux.models.qwen21.variants.edit.qwen_image_21_edit as reference
 
     from mflux.web.x746b_ui.runner import JobRunner
     from tests.web.test_runner import FakeAdapter, FakeModel, wait
@@ -179,3 +196,38 @@ def test_edit_runner_uses_real_adapter_with_fake_weights(web, monkeypatch):
         assert "model_cached" in [event["type"] for event in job.events]
     finally:
         runner.stop()
+
+
+def test_edit_forwards_advanced_options_and_viggle_scheduler(web):
+    name = "c" * 16 + ".png"
+    Image.new("RGB", (64, 64)).save(web.settings.upload_dir / name)
+    inv = invocation(
+        web,
+        {
+            "--scheduler": "viggle_turbo",
+            "--steps": 6,
+            "--auto-mask": "the red shirt",
+            "--strength": 0.7,
+            "--use-step-cache": True,
+            "--step-cache-threshold": 0.2,
+            "--enhance-prompt": True,
+            "--verify": True,
+            "--verify-retries": 2,
+        },
+        [name],
+    )
+    args = inv.parse()
+    inv.adapter.validate(args)
+    calls = []
+    model = SimpleNamespace(prompt_cache={}, generate_image=lambda **kwargs: calls.append(kwargs))
+    inv.adapter.generate(model, args, 42, args.prompt)
+    assert calls[0]["image_paths"] == [web.settings.upload_dir / name]
+    assert calls[0]["scheduler"] == "viggle_turbo"
+    assert calls[0]["num_inference_steps"] == 6
+    assert calls[0]["auto_mask"] == "the red shirt"
+    assert calls[0]["strength"] == 0.7
+    assert calls[0]["use_step_cache"] is True
+    assert calls[0]["step_cache_threshold"] == 0.2
+    assert calls[0]["enhance_prompt"] is True
+    assert calls[0]["verify"] is True
+    assert calls[0]["verify_retries"] == 2

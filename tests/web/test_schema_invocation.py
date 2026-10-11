@@ -75,6 +75,7 @@ def test_readme_command_round_trips_through_the_real_parser(schema, guard, tmp_p
     assert args.base_model == "qwen-image-2.1"
     assert (args.width, args.height, args.steps, args.seed) == (1024, 1024, 40, [42, 43])
     assert args.metadata is True
+    assert "--make-conf" in invocation.argv
     assert "{seed}" in args.output and args.output.startswith(str(tmp_path / "out"))
     assert "mflux-generate-qwen-2.1 --base-model=qwen-image-2.1" in invocation.shell_command()
 
@@ -217,5 +218,71 @@ def test_parser_errors_surface_without_usage_noise(schema, guard, tmp_path):
 
 def test_family_restriction_is_enforced_before_loading(schema, guard, tmp_path):
     payload = {"command": "mflux-generate-ernie-image-turbo", "options": {"--prompt": "x", "--guidance": 3.0}}
-    with pytest.raises(InvocationError, match="Guidance"):
+    with pytest.raises(InvocationError, match="(?i)guidance"):
         build(payload, guard, schema, tmp_path).validate()
+
+
+@pytest.mark.parametrize("command", list(ADAPTERS))
+@pytest.mark.parametrize(
+    "flag",
+    [
+        "--make-conf",
+        "--metadata",
+        "--no-exif",
+        "--no-metadata",
+        "--config-from-conf",
+        "--config-from-metadata",
+        "-C",
+        "--mask-image",
+    ],
+)
+def test_server_owned_flags_and_aliases_are_rejected(schema, guard, tmp_path, command, flag):
+    with pytest.raises(InvocationError, match="not allowed"):
+        build({"command": command, "options": {"--prompt": "x", flag: "/etc/passwd"}}, guard, schema, tmp_path)
+
+
+def test_blocked_alias_cannot_be_exposed_under_another_canonical_name():
+    option = {"flag": "--future-config", "aliases": ["--config-from-conf"], "type": "bool", "status": "honored"}
+    assert FormSchema._field(option, ADAPTERS["mflux-generate-qwen-2.1"]) is None
+
+
+@pytest.mark.parametrize(
+    ("flag", "value"),
+    [
+        ("--strength", 0),
+        ("--strength", 1.1),
+        ("--verify-retries", -1),
+        ("--verify-retries", 4),
+        ("--step-cache-threshold", -0.1),
+    ],
+)
+def test_edit_option_bounds(schema, guard, tmp_path, flag, value):
+    with pytest.raises(InvocationError):
+        build(
+            {"command": "mflux-generate-qwen-2.1-edit", "options": {"--prompt": "x", flag: value}},
+            guard,
+            schema,
+            tmp_path,
+        )
+
+
+@pytest.mark.parametrize("value", [0, 1, -0.1, 1.1])
+def test_step_cache_ratio_bounds(schema, guard, tmp_path, value):
+    with pytest.raises(InvocationError):
+        build(
+            {"command": "mflux-generate-qwen-2.1", "options": {"--prompt": "x", "--step-cache-ratio": value}},
+            guard,
+            schema,
+            tmp_path,
+        )
+
+
+def test_automatic_mask_description_is_literal_text(schema, guard, tmp_path):
+    description = "the red shirt --mask-image=/etc/passwd"
+    args = build(
+        {"command": "mflux-generate-qwen-2.1-edit", "options": {"--prompt": "x", "--auto-mask": description}},
+        guard,
+        schema,
+        tmp_path,
+    ).parse()
+    assert args.auto_mask == description and args.mask_image is None

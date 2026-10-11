@@ -7,8 +7,8 @@ module-name = "mflux.web.x746b_ui"
 namespace = true
 
 [project]
-name = "mflux-webui"
-version = "0.2.0"
+name = "mflux-webui-uno"
+version = "0.2.2"
 description = "A lightweight browser interface for mflux image generation with local and hosted prompt assistants."
 readme = "README.md"
 license = "MIT AND Apache-2.0"
@@ -16,7 +16,7 @@ license-files = ["LICENSE", "NOTICE", "licenses/*.txt"]
 requires-python = ">=3.12"
 keywords = ["mflux", "mlx", "webui", "fastapi", "apple-silicon", "image-generation"]
 dependencies = [
-    "mflux>=0.20.0,<0.21.0",
+    "mflux>=0.22.0,<0.23.0",
     "fastapi>=0.115,<1.0",
     "httpx>=0.28,<1.0",
     "itsdangerous>=2.2,<3.0",
@@ -34,10 +34,6 @@ Issues = "https://github.com/x746b/mflux-webui/issues"
 
 [project.scripts]
 mflux-webui = "mflux.web.x746b_ui.cli:main"
-
-# Required upstream functionality is not yet published in mflux 0.20.0.
-[tool.uv.sources]
-mflux = { git = "https://github.com/mflux-community/mflux", rev = "0db686992d65cbd84bd925dfce23b77ad0bedf7d" }
 
 [dependency-groups]
 dev = ["pytest>=9.1,<10", "ruff==0.16.3"]

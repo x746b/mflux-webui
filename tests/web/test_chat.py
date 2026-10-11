@@ -33,6 +33,10 @@ class ChatRoutesTest(unittest.TestCase):
         response = self.client().get("/api/chat/config")
         self.assertTrue(response.json()["configured"])
         self.assertEqual(response.json()["default_model"], "gpt-6-luna")
+        self.assertEqual(
+            response.json()["models"],
+            [{"id": "gpt-6-luna", "name": "GPT-6 Luna"}, {"id": "gpt-6.1-sol", "name": "GPT-6.1 Sol"}],
+        )
         self.assertNotIn("private-openai-key", response.text)
         self.assertNotIn("private-secret", response.text)
         self.assertEqual(response.headers["cache-control"], "no-store")
@@ -63,8 +67,9 @@ class ChatRoutesTest(unittest.TestCase):
         self.assertEqual(result["reasoning"], {"effort": "low"})
         self.assertEqual(result["max_output_tokens"], 4096)
         self.assertNotIn("tools", result)
-        self.assertEqual(PromptChat.validate({**request, "model": "gpt-6-sol"})["model"], "gpt-6-sol")
+        self.assertEqual(PromptChat.validate({**request, "model": "gpt-6.1-sol"})["model"], "gpt-6.1-sol")
         for invalid in [
+            {**request, "model": "gpt-6-sol"},
             {**request, "model": "other"},
             {**request, "model": []},
             {**request, "instructions": "x" * 4001},
@@ -106,12 +111,12 @@ class ChatStreamTest(unittest.IsolatedAsyncioTestCase):
     def events(*items):
         return "".join("data: " + json.dumps(item) + "\n\n" for item in items)
 
-    async def collect(self, handler):
+    async def collect(self, handler, model=PromptChat.DEFAULT_MODEL):
         with patch(
             "mflux.web.x746b_ui.chat.httpx.AsyncClient",
             side_effect=lambda **kw: ASYNC_CLIENT(transport=httpx.MockTransport(handler), **kw),
         ):
-            payload = PromptChat.validate({"messages": [{"role": "user", "content": "A rainy street"}]})
+            payload = PromptChat.validate({"model": model, "messages": [{"role": "user", "content": "A rainy street"}]})
             return [json.loads(item) async for item in PromptChat().stream(payload, "secret-key")]
 
     async def test_stream_and_payload(self):
@@ -137,6 +142,21 @@ class ChatStreamTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("".join(e.get("text", "") for e in events), "Rain in Prague")
         self.assertEqual(events[-1], {"type": "done", "usage": {"input_tokens": 10, "output_tokens": 5}})
         self.assertNotIn("hidden", json.dumps(events))
+
+    async def test_sol_61_uses_responses_with_low_reasoning(self):
+        def handler(request):
+            self.assertEqual(str(request.url), "https://api.openai.com/v1/responses")
+            body = json.loads(request.content)
+            self.assertEqual(body["model"], "gpt-6.1-sol")
+            self.assertEqual(body["reasoning"], {"effort": "low"})
+            self.assertEqual(body["max_output_tokens"], 4096)
+            self.assertTrue(body["stream"])
+            self.assertFalse(body["store"])
+            self.assertNotIn("tools", body)
+            return httpx.Response(200, text=self.events({"type": "response.completed", "response": {"usage": {}}}))
+
+        events = await self.collect(handler, model="gpt-6.1-sol")
+        self.assertEqual(events[-1]["type"], "done")
 
     async def test_provider_errors_are_sanitized(self):
         for status in (400, 401, 403, 404, 429, 500):

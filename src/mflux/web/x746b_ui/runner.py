@@ -403,7 +403,7 @@ class JobRunner:
                     MemoryGuard.trim_prompt_cache(model)
                 self.memory.check()
                 job.images.append(self._save(job, image, args, seed))
-                job.emit("image", name=job.images[-1], seed=seed)
+                job.emit("image", name=job.images[-1], seed=getattr(image, "seed", seed))
         finally:
             if not cacheable:
                 del model
@@ -475,7 +475,14 @@ class JobRunner:
             Invocation.apply_globals(args)
             path = ImageUtil.resolve_output_path(args.output.format(seed=seed))
             image.save(path=path, export_json_metadata=True, overwrite=True)
-        sidecar = {"command": job.invocation.command, "payload": job.payload, "seed": seed, "job": job.id}
+        # Verification can return a successful retry made with a later seed. Keep the
+        # requested seed in the filename like the CLI, but record the image's actual seed.
+        sidecar = {
+            "command": job.invocation.command,
+            "payload": job.payload,
+            "seed": getattr(image, "seed", seed),
+            "job": job.id,
+        }
         Path(path).with_suffix(".web.json").write_text(json.dumps(sidecar, indent=2))
         return Path(path).name
 

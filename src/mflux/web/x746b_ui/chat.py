@@ -13,7 +13,7 @@ from mflux.web.x746b_ui.network import NetworkPolicy
 
 
 class PromptChat:
-    MODELS = {"gpt-6-luna": "GPT-6 Luna", "gpt-6-sol": "GPT-6 Sol"}
+    MODELS = {"gpt-6-luna": "GPT-6 Luna", "gpt-6.1-sol": "GPT-6.1 Sol"}
     DEFAULT_MODEL = "gpt-6-luna"
     MAX_MESSAGES = 24
     MAX_TEXT = 12000
@@ -119,7 +119,7 @@ class PromptChat:
         else:
             model = body.get("model", PromptChat.DEFAULT_MODEL)
             if not isinstance(model, str) or model not in PromptChat.MODELS:
-                raise HTTPException(400, "Choose GPT-6 Luna or GPT-6 Sol.")
+                raise HTTPException(400, "Choose GPT-6 Luna or GPT-6.1 Sol.")
         instructions = body.get("instructions", "")
         if not isinstance(instructions, str) or len(instructions) > PromptChat.MAX_INSTRUCTIONS:
             raise HTTPException(400, "Assistant instructions must be at most 4,000 characters.")

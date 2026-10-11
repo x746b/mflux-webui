@@ -9,7 +9,7 @@ from mflux.web.x746b_ui.memory import MemoryGuard
 from mflux.web.x746b_ui.network import NetworkPolicy
 from mflux.web.x746b_ui.settings import DEFAULT_CONFIG_PATH, DEFAULT_HOST, DEFAULT_OUTPUT_DIR, DEFAULT_PORT, WebSettings
 
-INSTALL_HINT = "mflux-webui dependencies are missing; reinstall mflux-webui using the README instructions."
+INSTALL_HINT = "mflux-webui dependencies are missing; reinstall mflux-webui-uno using the README instructions."
 
 
 def build_parser() -> argparse.ArgumentParser:

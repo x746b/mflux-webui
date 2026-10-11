@@ -22,23 +22,23 @@ flowchart LR
 - **Chat is optional.** Choose local oMLX or the OpenAI API to help with prompt ideas. OpenAI chat sends submitted conversation text to OpenAI; image generation still runs locally.
 - **The CLI remains available.** Each job shows an equivalent command you can copy into a terminal.
 
-For the frontend, API, worker, and execution diagrams, see [Architecture](docs/architecture.md).
+For the frontend, API, worker, and execution diagrams, see [Architecture](https://github.com/x746b/mflux-webui/blob/main/docs/architecture.md).
 
 ### A look at the UI
 
-![Generate page with the local oMLX prompt assistant](docs/Screenshot-1.png)
+![Generate page with the local oMLX prompt assistant](https://raw.githubusercontent.com/x746b/mflux-webui/main/docs/Screenshot-1.png)
 
 *Generate with the local oMLX prompt assistant. Generation controls are on the left; the result and equivalent CLI command are on the right. Use **Copy CLI command** to take a run back to the terminal. The top bar shows worker status and memory use, with an **Unload** button when a cached model can be released.*
 
-![Generate page with the OpenAI prompt assistant](docs/Screenshot-2.png)
+![Generate page with the OpenAI prompt assistant](https://raw.githubusercontent.com/x746b/mflux-webui/main/docs/Screenshot-2.png)
 
-*The same prompt assistant connected to OpenAI, with GPT-6 Luna and GPT-6 Sol available. **Use this prompt** transfers a suggestion into the generation form. Each provider keeps its own conversation and draft.*
+*The same prompt assistant connected to OpenAI, with GPT-6 Luna and GPT-6.1 Sol available. **Use this prompt** transfers a suggestion into the generation form. Each provider keeps its own conversation and draft.*
 
-![Gallery](docs/Screenshot-3.png)
+![Gallery](https://raw.githubusercontent.com/x746b/mflux-webui/main/docs/Screenshot-3.png)
 
 *The gallery. Open an image to inspect its generation settings, download it, or use **Reuse settings** to restore its options and seed in the form.*
 
-![Image generated with the standalone UI and local prompt assistant](docs/Screenshot-samples-1.png)
+![Image generated with the standalone UI and local prompt assistant](https://raw.githubusercontent.com/x746b/mflux-webui/main/docs/Screenshot-samples-1.png)
 
 *A sample generated with the standalone package using Krea 2, a LoRA, and the local oMLX prompt assistant.*
 
@@ -46,13 +46,22 @@ For the frontend, API, worker, and execution diagrams, see [Architecture](docs/a
 
 ### Install and run
 
-mflux-webui **0.2.0** uses upstream functionality newer than the current `mflux 0.20.0` PyPI release. It is tested against the upstream revision below and does not depend on the `x746b/mflux` fork. Install or update the UI with this explicit upstream dependency:
+The distribution is named **mflux-webui-uno**, version **0.2.2**. The command remains `mflux-webui`. This release requires Apple Silicon, Python 3.12 or newer, and the published `mflux 0.22.x` core from PyPI; no Git override or mflux fork is required.
+
+Install or update to the tagged Git release:
 
 ```bash
 uv tool install --force --refresh --python 3.14 \
-  --with "mflux @ git+https://github.com/mflux-community/mflux@0db686992d65cbd84bd925dfce23b77ad0bedf7d" \
-  "mflux-webui @ git+https://github.com/x746b/mflux-webui@main"
+  "mflux-webui-uno @ git+https://github.com/x746b/mflux-webui@v0.2.2"
 ```
+
+This version is not yet published on PyPI. After publication, the equivalent PyPI installation will be:
+
+```bash
+uv tool install --force --refresh --python 3.14 mflux-webui-uno
+```
+
+If you previously installed the distribution named `mflux-webui` with `uv tool`, first run `uv tool uninstall mflux-webui`, then install `mflux-webui-uno` as above. The executable name, configuration, generated images, and model directories remain the same. Remove any old `--with "mflux @ git+..."` override from your installation command so the registry dependency can be resolved normally.
 
 #### Run
 
@@ -70,7 +79,7 @@ Adjust the paths and memory budget to suit your machine. The example uses `--cac
 
 ### News
 
-- **Prompt assistant:** discuss ideas with GPT-6 Luna, GPT-6 Sol, or an oMLX model, expand or shorten prompts, and insert suggestions into the generation form. Enable or disable the assistant in Settings.
+- **Prompt assistant:** discuss ideas with GPT-6 Luna, GPT-6.1 Sol, or an oMLX model, expand or shorten prompts, and insert suggestions into the generation form. Enable or disable the assistant in Settings.
 - **Settings tab:** choose System, Light, or Dark appearance with Orange, Blue, or Teal accents. Select the assistant provider and check its configuration, Hugging Face token status, loaded models, directories, memory limits, and idle unload time.
 - **Startup progress:** see which command is loading, followed by model-folder and LoRA scans, with elapsed time and a progress bar. Detailed timings are available in the server log.
 - **Easier LoRA selection:** LoRAs sit directly below the model controls and display paths relative to `--lora-dir`. Bake LoRA into weights is unchecked by default.
@@ -82,7 +91,7 @@ Adjust the paths and memory budget to suit your machine. The example uses `--cac
 
 ### Good to know
 
-- **Prompt assistant.** Enabled by default; uncheck **Enable prompt assistant** in Settings to hide its button and stop active replies in tabs of this browser. Choose OpenAI with GPT-6 Luna (default) or GPT-6 Sol, or oMLX with the model configured on the server. **Use current prompt**, **Expand**, **Shorten**, and **Suggest variations** prepare a draft; **Send** starts the request. Replies stream, **Stop** cancels the connection, and **Use this prompt** inserts a suggestion after confirming replacement. Each provider has its own in-memory history and draft, so switching providers does not transfer conversations. Chat clears on reload/navigation; **Clear chat** resets only the selected provider's history and leaves the generation prompt untouched. Settings saves provider/model/style preferences per browser. OpenAI API charges apply; oMLX uses its configured inference server.
+- **Prompt assistant.** Enabled by default; uncheck **Enable prompt assistant** in Settings to hide its button and stop active replies in tabs of this browser. Choose OpenAI with GPT-6 Luna (default) or GPT-6.1 Sol, or oMLX with the model configured on the server. **Use current prompt**, **Expand**, **Shorten**, and **Suggest variations** prepare a draft; **Send** starts the request. Replies stream, **Stop** cancels the connection, and **Use this prompt** inserts a suggestion after confirming replacement. Each provider has its own in-memory history and draft, so switching providers does not transfer conversations. Chat clears on reload/navigation; **Clear chat** resets only the selected provider's history and leaves the generation prompt untouched. Settings saves provider/model/style preferences per browser. OpenAI API charges apply; oMLX uses its configured inference server.
 - **Settings.** The Settings tab shows whether the server detects a Hugging Face token, with login instructions if needed. This is a local presence check, not a validation of access; tokens are never displayed or stored by the Web UI. Choose System, Light, or Dark appearance and an Orange, Blue, or Teal accent; appearance is saved per browser. Runtime information lists loaded models, model/LoRA/output directories, the effective memory budget, and idle unload time. Use Refresh status to update this snapshot; change server options at startup.
 - **Built-in or Local folder.** "Built-in" downloads the model from Hugging Face. With `--models-dir`, fresh or reset forms default to Local folder; set the base model to match the checkpoint (for example `qwen-image-2.1`). Saved form selections take precedence over defaults.
 - **LoRAs.** The LoRA section is directly below Base model and Quantize. Local choices show paths relative to `--lora-dir`, with numbered labels for duplicate names across directories. Full paths are retained for generation. You can also enter a path, Hugging Face repository, or library name. **Bake LoRA into weights** is unchecked by default; saved settings can restore a previous choice.
@@ -92,8 +101,8 @@ Adjust the paths and memory budget to suit your machine. The example uses `--cac
 - **Memory.** The active MLX memory budget defaults to 75% of RAM; set `--max-memory-gb 64` to lower it when other apps or an LLM also need memory. The buffer cache stays capped at 25% of that budget. Jobs stop at callback checkpoints if active memory exceeds the budget, queued jobs are cancelled, and cached models unload. Retained-memory growth also triggers unloading between jobs. This is a soft guard, not a hard process-memory ceiling. The top-bar tooltip shows both limits. Use `--cache-size 0` to unload after every run, or `--idle-unload MINUTES` to change the default 10-minute idle timeout.
 - **History.** Recent jobs are kept only in memory and are gone when the server stops. "Clear history" drops finished jobs, unused uploads and saved generation drafts. Appearance and assistant preferences are kept, as are references needed by queued or running jobs. Images in the gallery stay until you delete them there. Use **Clear chat** separately to reset the prompt conversation.
 - **Queue capacity.** Up to 16 pending generation jobs can wait behind the running job. Further submissions receive a queue-full message and can be retried later. Each job can still contain several seeds.
-- **Supported models.** Text-to-image, plus image-to-image and LoRAs, for FLUX.1, FLUX.2, Qwen Image, Qwen Image 2.1, Z-Image, Krea 2 and ERNIE-Image. Qwen Image 2.1 editing is also available; other edit commands, ControlNet, fill and upscaling are still CLI-only.
-- **Qwen 2.1 editing.** Choose **qwen 2.1 edit**, select your Qwen-Image-2.1 weights, and add up to 10 reference images. Their order matches “image 1”, “image 2”, etc. in your prompt. Leave width and height empty to derive the size from the last reference and the advanced **Output resolution** setting; explicit dimensions must be multiples of 32. RGBA output is saved as PNG. **Use KV cache** can be disabled in Advanced. Editing requires at least two steps and guidance of 1 or more; it does not support LoRAs yet.
+- **Supported models.** Text-to-image, plus image-to-image and LoRAs, for FLUX.1, FLUX.2, Qwen Image, Qwen Image 2.1, Z-Image, Krea 2 and ERNIE-Image. Qwen Image 2.1 editing is also available. The UI exposes ten commands; newer upstream commands such as Ming and Qwen ControlNet, other edit commands, fill and upscaling remain CLI-only.
+- **Qwen 2.1 editing.** Choose **qwen 2.1 edit**, select your Qwen-Image-2.1 weights, and optionally add up to 10 reference images. Their order matches “image 1”, “image 2”, etc. in your prompt. Leave width and height empty to derive the size from the last reference and the advanced **Output resolution** setting (square when no reference is supplied); explicit dimensions must be multiples of 32. RGBA output is saved as PNG. **Use KV cache** can be disabled in Advanced. Editing requires at least two steps and guidance of 1 or more. LoRAs are supported. Text-based auto-mask is supported; manual mask image uploads are not available in the UI.
 - **Quiet console.** The page polls the server all the time. Those requests are only logged with `--log-level debug`.
 - **Initial loading.** The Generate page shows the command currently loading, then the model-folder and LoRA scans, with elapsed time and a progress bar. Progress counts completed discovery steps, not estimated time remaining. The server logs how long each command schema takes on its first build, followed by totals for schema setup, model-folder discovery, and LoRA scanning. Shared dependency imports count toward the first command that needs them; later requests reuse cached schemas. If loading fails, the page shows an error and a reload button.
 
@@ -109,7 +118,7 @@ Open a new terminal, then start `mflux-webui` with your usual options. An alread
 
 Keep credentials outside the repository. The browser receives only key-presence status, never the key. Opening the assistant or Settings makes no paid request. Sending a chat message uses your API project; anybody permitted to use this Web UI can use its configured assistant. No image, local model path, or generation prompt is automatically attached. Requests use the Responses API with `store=false`, no tools, low reasoning, and bounded context/output; conversation history is explicitly resent with each turn.
 
-The assistant currently supports `gpt-6-luna` and `gpt-6-sol`. Access depends on your API project. Provider errors are shown without exposing provider diagnostics or credentials. Cancelling closes the stream; work already processed may still be billed.
+The assistant currently supports `gpt-6-luna` and `gpt-6.1-sol`. Access depends on your API project. Provider errors are shown without exposing provider diagnostics or credentials. Cancelling closes the stream; work already processed may still be billed.
 
 Chat requests have an overall deadline of two minutes for OpenAI and five minutes for oMLX, including model loading and response streaming. A timeout closes the upstream connection and frees the chat slot. Responses are limited to 2 MiB in total, with individual SSE lines and events limited to 256 KiB before JSON parsing. Streaming requests use uncompressed responses so these limits also bound decoding buffers.
 
@@ -183,9 +192,9 @@ The `mflux-webui` command is distinct from other packages' `mflux-web` commands.
 
 Qwen geometry and prompt caches are trimmed by the UI after generation; upstream model files are not patched. The adapters depend on mflux APIs that can change, so every core dependency update needs automated checks and real generation testing.
 
-The development override in `[tool.uv.sources]` is not included in wheel dependency metadata. For a wheel install, provide the same explicit upstream override shown above. Before publishing to PyPI, select and test a published mflux version containing the required features, update the dependency minimum, and remove the Git override. The current package requires the documented upstream revision; stock mflux 0.20.0 does not provide the complete feature set.
+The dependency is `mflux>=0.22.0,<0.23.0` from PyPI. The lockfile uses the registry release, and wheel installations carry the same version bounds without a source override. Startup checks the installed core's release series and required files and reports an actionable error for incompatible installations.
 
-See [core compatibility and release checks](docs/compatibility.md) for the tested baseline, package boundaries, and validation details.
+See [core compatibility and release checks](https://github.com/x746b/mflux-webui/blob/main/docs/compatibility.md) for the tested baseline, package boundaries, and validation details.
 
 ### License
 
